@@ -38,7 +38,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+// Add these lines right before "app.Run();" in your Program.cs
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll"); // Apply CORS
 app.UseAuthorization();
