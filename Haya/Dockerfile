@@ -1,5 +1,5 @@
-# Stage 1: Build the Customer React Storefront
-FROM node:18-alpine AS builder
+# Stage 1: Build the Customer React Storefront (Upgraded to Node 20)
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
