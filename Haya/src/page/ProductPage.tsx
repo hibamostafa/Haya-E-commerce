@@ -16,12 +16,14 @@ export interface Product {
   heritageStory: string;
   sizes: string[];
 }
+
 interface ProductPageProps {
   onAddToCart?: () => void;
-  onExamineProduct?: (product: Product) => void; // Add this line
+  onExamineProduct?: (product: Product) => void;
   initialCategory?: string;
 }
-// --- High-End Product Catalog Data (Fallback Mock Data) ---
+
+// --- High-End Product Catalog Data (Fallback Mock Data if database is empty) ---
 const PRODUCTS: Product[] = [
   {
     id: 1,
@@ -67,74 +69,8 @@ const PRODUCTS: Product[] = [
     description: "Two-piece premium Japanese satin set offering a structured dark brown abaya with a modern mint inner slip.",
     heritageStory: "Combines modern modular tailoring with classic modest drapes, inspired by symmetrical courtyards of Andalusian riads.",
     sizes: ["S", "M", "L"]
-  },
-  {
-    id: 4,
-    name: "Pomegranate Brocade Kaftan",
-    arabicName: "قفطان الرمان الدمشقي",
-    category: "Abayas",
-    price: 195.00,
-    colorName: "Saffron Red",
-    colorHex: "#8C3F3F",
-    fabric: "Silk Crepe",
-    imageUrl: "https://i.pinimg.com/736x/ea/3a/c6/ea3ac6e5adfc7380de194c9ed2cb45f0.jpg",
-    hoverImageUrl: "https://i.pinimg.com/736x/86/b1/3e/86b13e9da1024de55a797501f9b0f66f.jpg",
-    description: "Rich pomegranate hue silk crepe offset by fine gold threads, echoing historical royal Persian robes.",
-    heritageStory: "Adorned with gold thread hand-embroidery along the collar, inspired by tile motifs found inside the Shah Mosque.",
-    sizes: ["S", "M", "L", "XL"]
-  },
-  {
-    id: 5,
-    name: "Clay Rose Georgette Hijab",
-    arabicName: "طرحة جورجيت بلون الصلصال",
-    category: "Hijabs",
-    price: 45.00,
-    colorName: "Clay Rose",
-    colorHex: "#C5A894",
-    fabric: "Georgette",
-    imageUrl: "https://i.pinimg.com/736x/81/15/fc/8115fc8a86340c97ccbb6574cc183501.jpg",
-    hoverImageUrl: "https://i.pinimg.com/736x/ea/3a/c6/ea3ac6e5adfc7380de194c9ed2cb45f0.jpg",
-    description: "Non-slip premium georgette, exceptionally breathable with hand-rolled hems and double-stitched details.",
-    heritageStory: "Crafted specifically to withstand warm coastal climates, keeping a fluid drape while remaining structured throughout the day.",
-    sizes: ["One Size"]
-  },
-  {
-    id: 6,
-    name: "Oasis Linen Trench Abaya",
-    arabicName: "عباية الخندق الواحة اللينين",
-    category: "Abayas",
-    price: 155.00,
-    colorName: "Mint Sage",
-    colorHex: "#A3B899",
-    fabric: "Linen",
-    imageUrl: "https://i.pinimg.com/736x/86/b1/3e/86b13e9da1024de55a797501f9b0f66f.jpg",
-    hoverImageUrl: "https://i.pinimg.com/736x/81/15/fc/8115fc8a86340c97ccbb6574cc183501.jpg",
-    description: "Structured double-breasted linen trench abaya, incorporating natural tortoiseshell-pattern fasteners.",
-    heritageStory: "An urban iteration of the classic abaya, merging Western utility trench elements with Middle-Eastern modesty guidelines.",
-    sizes: ["S", "M", "L"]
-  },
-  {
-    id: 7,
-    name: "Shiraz Midnight Velvet Bisht",
-    arabicName: "بشت شيراز المخملي الداكن",
-    category: "Bishts",
-    price: 210.00,
-    colorName: "Earthy Umber",
-    colorHex: "#2E2520",
-    fabric: "Velvet",
-    imageUrl: "https://i.pinimg.com/736x/ea/3a/c6/ea3ac6e5adfc7380de194c9ed2cb45f0.jpg",
-    hoverImageUrl: "https://i.pinimg.com/736x/86/b1/3e/86b13e9da1024de55a797501f9b0f66f.jpg",
-    description: "Ultra-luxurious heavy velvet bisht lined with premium Japanese silk, ideal for elegant evening wear.",
-    heritageStory: "Lined with silk inspired by antique Persian carpets, featuring hidden pockets and a signature weighted drape.",
-    sizes: ["M", "L"]
   }
 ];
-
-interface ProductPageProps {
-  onAddToCart?: () => void;
-  onExamineProduct?: (product: Product) => void;
-  initialCategory?: string;
-}
 
 export const ProductPage: React.FC<ProductPageProps> = ({ onAddToCart, onExamineProduct, initialCategory = 'All' }) => {
   // --- Dynamic API state ---
@@ -152,39 +88,98 @@ export const ProductPage: React.FC<ProductPageProps> = ({ onAddToCart, onExamine
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState<boolean>(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
 
-  // --- Fetching from .NET API ---
+  // --- Fetching directly from the Supabase database instance ---
   useEffect(() => {
     const fetchLiveProducts = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('https://localhost:7137/api/Products');
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Map database structure to the React layout requirements
-          const mappedProducts = data.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            arabicName: item.arabicName || "تصميم فريد", // Fallback for database schemas
-            category: item.category || "Abayas",
-            price: item.price,
-            colorName: item.colorName || "Mint Sage",
-            colorHex: item.colorHex || "#A3B899",
-            fabric: item.fabric || "Silk Crepe",
-            imageUrl: item.images && item.images.length > 0 
-              ? item.images[0].imageUrl 
-              : "https://via.placeholder.com/400x533?text=Haya+Abaya",
-            hoverImageUrl: item.images && item.images.length > 1 
-              ? item.images[1].imageUrl 
-              : (item.images && item.images.length > 0 ? item.images[0].imageUrl : "https://via.placeholder.com/400x533?text=Haya+Abaya"),
-            description: item.description,
-            heritageStory: item.heritageStory || "Inspired by traditional Arabesque geometry.",
-            sizes: item.sizes || ["S", "M", "L", "XL"]
-          }));
+        const supabaseUrl = "https://fwgovjxusggdzjzxlizp.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3Z292anh1c2dnZHpqenhsaXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjAzOTYsImV4cCI6MjA5ODczNjM5Nn0.fsxxr-kpVIflreOoooZjHuUaN70KxHf8CGC6pMeVScw";
 
-          setProducts(mappedProducts.length > 0 ? mappedProducts : PRODUCTS);
-        } else {
-          setProducts(PRODUCTS);
+        // 1. Fetch core items from the capitalized Products table (casing compliant)
+        let response = await fetch(`${supabaseUrl}/rest/v1/Products?select=*`, {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          response = await fetch(`${supabaseUrl}/rest/v1/products?select=*`, {
+            headers: {
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Accept': 'application/json'
+            }
+          });
         }
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch Products table: ${response.status}`);
+        }
+
+        const productsData = await response.json();
+
+        // 2. Fetch images optionally (scanning candidates matching the dashboard schema)
+        let imagesData: any[] = [];
+        const imageTableCandidates = ['ProductImages', 'Product_Images', 'images', 'Images', 'product_images'];
+        
+        for (const table of imageTableCandidates) {
+          try {
+            const imgRes = await fetch(`${supabaseUrl}/rest/v1/${table}?select=*`, {
+              headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Accept': 'application/json'
+              }
+            });
+            if (imgRes.ok) {
+              imagesData = await imgRes.json();
+              break;
+            }
+          } catch (_) {}
+        }
+
+        // 3. Map retrieved database models directly to front-end page requirements
+        const mappedProducts = productsData.map((item: any) => {
+          const itemId = item.id || item.Id;
+
+          // Resolve matching images mapped in database relations
+          const matchedImages = imagesData
+            .filter((img: any) => {
+              const pId = img.product_id || img.productId || img.productid || img.ProductId;
+              return Number(pId) === Number(itemId);
+            })
+            .map((img: any) => img.image_url || img.imageUrl || img.imageurl || img.ImageUrl || '');
+
+          // Fallback images if no listing images are found
+          const fallbackImg = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600";
+          const imageUrl = matchedImages.length > 0 ? matchedImages[0] : fallbackImg;
+          const hoverImageUrl = matchedImages.length > 1 ? matchedImages[1] : imageUrl;
+
+          // Convert database comma-separated size text to expected array format
+          const rawSizes = item.sizes || item.Sizes || '';
+          const sizesArray = rawSizes ? rawSizes.split(',') : ["S", "M", "L", "XL"];
+
+          return {
+            id: itemId,
+            name: item.name || item.Name || '',
+            arabicName: item.arabic_name || item.arabicName || item.ArabicName || "تصميم فريد",
+            category: item.category || item.Category || "Abayas",
+            price: Number(item.price || item.Price || 0),
+            colorName: item.color_name || item.colorName || item.ColorName || "Mint Sage",
+            colorHex: item.color_hex || item.colorHex || item.ColorHex || "#A3B899",
+            fabric: item.fabric || item.Fabric || "Silk Crepe",
+            imageUrl: imageUrl,
+            hoverImageUrl: hoverImageUrl,
+            description: item.description || item.Description || "Premium custom abaya apparel.",
+            heritageStory: item.heritage_story || item.heritageStory || item.HeritageStory || "Inspired by traditional Arabesque geometry.",
+            sizes: sizesArray
+          };
+        });
+
+        setProducts(mappedProducts.length > 0 ? mappedProducts : PRODUCTS);
       } catch (error) {
         console.warn("Could not fetch database products. Falling back to default catalog.", error);
         setProducts(PRODUCTS);
@@ -215,7 +210,7 @@ export const ProductPage: React.FC<ProductPageProps> = ({ onAddToCart, onExamine
 
   // --- Filtering & Sorting Logic ---
   const filteredProducts = useMemo(() => {
-    let result = [...products]; // FIXED: Now references stateful "products" instead of "PRODUCTS"
+    let result = [...products];
 
     // Filter by Category
     if (selectedCategory !== 'All') {
@@ -299,7 +294,6 @@ export const ProductPage: React.FC<ProductPageProps> = ({ onAddToCart, onExamine
           padding: 40px;
         }
 
-        /* FIXED: Added styling rule for the primary ".haya-btn" */
         .haya-btn {
           background-color: var(--color-brown-dark);
           color: var(--color-white);
@@ -705,6 +699,14 @@ export const ProductPage: React.FC<ProductPageProps> = ({ onAddToCart, onExamine
           height: 100%;
           object-fit: cover;
           transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .haya-card-image-secondary {
+          position: absolute;
+          top: 0; left: 0; width: 100%; height: 100%;
+          object-fit: cover;
+          opacity: 0;
+          transition: var(--transition);
         }
 
         .haya-card-image-secondary {
